@@ -4,9 +4,13 @@
 
 ## File Structure
 .
+
 ├── cmd
+
 │   └── godu
+
 ├── docs
+
 └── internal
 
 To quickly go through the intentions and thoughts here:
