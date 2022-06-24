@@ -3,15 +3,13 @@
 `godu` aims to implement a similar functionality using [Go](https://go.dev/) and [Bubble Tea](https://github.com/charmbracelet/bubbletea).
 
 ## File Structure
+```
 .
-
 ├── cmd
-
 │   └── godu
-
 ├── docs
-
 └── internal
+```
 
 To quickly go through the intentions and thoughts here:
 
