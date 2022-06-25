@@ -8,8 +8,6 @@ I have an example of BubbleTea in fullscreen mode here: `go run main.go`
 ## File Structure
 ```
 .
-├── cmd
-│   └── godu
 ├── docs
 └── internal
 ```
