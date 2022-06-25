@@ -18,6 +18,7 @@ To quickly go through the intentions and thoughts here:
 
 ### ~~cmd~~
 ~~This will contain the main function and only the main function.~~
+
 Removing `cmd` directory in favor of using simply `main.go` in the root directory.
 
 ### internal
