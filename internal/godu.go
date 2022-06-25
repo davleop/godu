@@ -1,10 +1,14 @@
-package main
+package godu
 
 import (
-    "fmt"
     "os"
+    "fmt"
+    "log"
+    "time"
 
     tea "github.com/charmbracelet/bubbletea"
 )
 
-
+func main() {
+    //
+}
