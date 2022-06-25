@@ -12,7 +12,7 @@ type model struct {
     selected map[int]struct{}
 }
 
-func initialModel() model {
+func InitialModel() model {
     return model {
         choices: []string{"Buy carrots", "Buy celery", "Buy kohlrabi"},
 
@@ -21,7 +21,7 @@ func initialModel() model {
 }
 
 func (m model) Init() tea.Cmd {
-    return nil
+    return tea.Batch(tea.EnterAltScreen)
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
