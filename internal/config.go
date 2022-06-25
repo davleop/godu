@@ -1,4 +1,4 @@
-package config
+package godu
 
 /* File Flags (struct dir -> flags) */
 const FF_DIR    = 0x01
