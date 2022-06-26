@@ -10,6 +10,8 @@ I have an example of BubbleTea in fullscreen mode here: `go run main.go`
 .
 ├── docs
 └── internal
+    ├── deps
+    └── tui
 ```
 
 To quickly go through the intentions and thoughts here:
