@@ -28,26 +28,78 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
     switch msg := msg.(type) {
     case tea.KeyMsg:
         switch msg.String() {
-        case "ctrl+c", "q":
+        case "ctrl+c", "q", "esc":
+            // exit
             return m, tea.Quit
 
         case "up", "k":
+            // cycle items
             if m.cursor > 0 {
                 m.cursor--
             }
 
         case "down", "j":
+            // cycle items
             if m.cursor < len(m.choices)-1 {
                 m.cursor++
             }
 
-        case "enter", " ":
+        case "enter", " ", "l", "right":
+            // open selected directory
             _, ok := m.selected[m.cursor]
             if ok {
                 delete(m.selected, m.cursor)
             } else {
                 m.selected[m.cursor] = struct{}{}
             }
+
+        case "left", "h":
+            // go to parent directory
+
+        case "n":
+            // order by filename
+
+        case "s":
+            // order by size
+
+        case "C":
+            // order by number of items
+
+        case "a":
+            // toggle disk usage/apparent size
+
+        case "M":
+            // order by latest modify time
+
+        case "d":
+            // delete selected file or directory
+
+        case "t":
+            // toggles directories before files when sorting
+
+        case "g":
+            // toggles percentage, graph, both, or none
+
+        case "u":
+            // toggle display of shared/unique size column for directories
+
+        case "c":
+            // toggle display of child counts
+
+        case "m":
+            // toggle display of latest modify time
+
+        case "e":
+            // Show/hide hidden files and directories
+
+        case "i":
+            // show information about selected item
+
+        case "r":
+            // refresh calculations in the current directory
+
+        case "b":
+            // spawn shell in current directory
         }
     }
 
