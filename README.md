@@ -1,9 +1,9 @@
 # godu
-[NCDU](https://dev.yorhel.nl/ncdu) is a tool, utilizing NCurses, creates a more user-friendly TUI similar to the purpose of the more well-known tool `du`.
+[NCDU](https://dev.yorhel.nl/ncdu) is a tool, utilizing [NCurses](https://ftp.gnu.org/pub/gnu/ncurses/), creates a more user-friendly TUI similar to the purpose of the more well-known tool `du`.
 `godu` aims to implement a similar functionality using [Go](https://go.dev/) and [Bubble Tea](https://github.com/charmbracelet/bubbletea).
 
 ## Running the code (so far)
-I have an example of BubbleTea in fullscreen mode here: `go run main.go`
+I have an example of Bubble Tea in fullscreen mode here: `go run main.go`
 
 ## File Structure
 ```
