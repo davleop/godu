@@ -8,12 +8,16 @@ require (
 )
 
 require (
+	github.com/MichaelTJones/walk v0.0.0-20161122175330-4748e29d5718 // indirect
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751 // indirect
 	github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137 // indirect
 	github.com/containerd/console v1.0.3 // indirect
+	github.com/iafan/cwalk v0.0.0-20210125030640-586a8832a711 // indirect
+	github.com/karrick/godirwalk v1.17.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/mattn/go-runewidth v0.0.13 // indirect
+	github.com/mitchellh/hashstructure v1.1.0 // indirect
 	github.com/muesli/ansi v0.0.0-20211018074035-2e021307bc4b // indirect
 	github.com/muesli/cancelreader v0.2.0 // indirect
 	github.com/muesli/reflow v0.3.0 // indirect
