@@ -5,6 +5,7 @@ go 1.17
 require (
 	github.com/charmbracelet/bubbletea v0.21.0 // direct
 	internal/tui v1.0.0
+	internal/du v1.0.0
 )
 
 require (
@@ -25,7 +26,7 @@ require (
 	github.com/rivo/uniseg v0.2.0 // indirect
 	golang.org/x/sys v0.0.0-20220209214540-3681064d5158 // indirect
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
-	gopkg.in/alecthomas/kingpin.v2 v2.2.6 // indirect
 )
 
 replace internal/tui => ./internal/tui
+replace internal/du => ./internal/du
