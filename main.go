@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"io"
 	"path/filepath"
-
-	//. "internal/tui"
-
 	"log"
 	"os"
 
 	"github.com/spf13/cobra"
-	//. "internal/tui"
+    tea "github.com/charmbracelet/bubbletea"
+
+    . "internal/tui"
+    . "internal/du"
 )
 
 /*
@@ -93,15 +93,21 @@ func init() {
 }
 
 func main() {
-	//commented out to avoid going into tui every time I tested code.
-	/*p := tea.NewProgram(InitialModel(), tea.WithAltScreen())
-	if err := p.Start(); err != nil {
-		log.Fatal(err)
-	}*/
-	//p := tea.NewProgram(InitialModel(), tea.WithAltScreen())
-
 	if err := rootCmd.Execute(); err != nil {
 		log.Fatal(err)
 	}
 
+    files, err := ListFilesRecursivelyInParallel(".")
+    if err != nil {
+        log.Fatalln(err)
+    }
+
+    if len(files) > 0 {
+        log.Println(files[0])
+    }
+
+    p := tea.NewProgram(InitialModel(), tea.WithAltScreen())
+    if err := p.Start(); err != nil {
+        log.Fatal(err)
+    }
 }
