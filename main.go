@@ -2,8 +2,13 @@ package main
 
 import (
 	"fmt"
+	"io"
+	"path/filepath"
+
 	//. "internal/tui"
+
 	"log"
+	"os"
 
 	"github.com/spf13/cobra"
 	//. "internal/tui"
@@ -19,26 +24,71 @@ var rootCmd = &cobra.Command{
 	Short: "This program shows disk usage",
 	Long:  "Put longer version of Short here",
 	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Print(args)
 		v, _ := cmd.Flags().GetBool("version")
 		if v {
 			version()
 		} else {
-			log.Fatal("version unavailable")
+			//log.Fatal("version unavailable")
+			fmt.Println("version not checked")
+		}
+		l := logFlag
+		if l != "" {
+			logFile, err = os.OpenFile(l, os.O_WRONLY, 0600)
+			if err != nil {
+				err = fmt.Errorf("error opening log file: %w", err)
+			}
+		}
+		defer func() {
+			cerr := logFile.Close()
+			if err == nil {
+				err = cerr
+			}
+		}()
+		log.SetOutput(logFile)
+		o := outputFlag
+		if o == "-" {
+			outputFile = os.Stdout
+		} else {
+			outputFile, err = os.OpenFile(o, os.O_WRONLY, 0600)
+			if err != nil {
+				err = fmt.Errorf("error setting output file: %w", err)
+			}
+		}
+		if len(args) == 1 {
+			dir, _ = filepath.Abs(args[0])
+		} else {
+			dir = "."
+		}
+		f := inputFile
+		if f != "" {
+			//needs to have logic for setting input file
+			fmt.Println(f)
 		}
 	},
 }
+
+var (
+	versionFlag bool
+	inputFile   string
+	outputFlag  string
+	outputFile  io.Writer
+	logFlag     string
+	logFile     *os.File
+	err         error
+	dir         string
+)
 
 func version() {
 	fmt.Println("Version goes here")
 }
 
-func file() {
-
-}
-
 func init() {
-	rootCmd.PersistentFlags().BoolP("file", "f", true, "-f [FILE] Loads the given file, which has earlier been created with the -o option. If [FILE] is equivalent to -, the file is read from standard input.")
-	rootCmd.PersistentFlags().BoolP("version", "v", true, "-v or --version: will output the version of godu currently in use")
+	flags := rootCmd.Flags()
+
+	flags.StringVarP(&outputFlag, "output-file", "o", "", "-o [FILE] defines file for data output")
+	flags.StringVarP(&inputFile, "input-file", "f", "", "-f [FILE] defines file for data input")
+	flags.BoolVarP(&versionFlag, "version", "v", false, "-v shows the current version of godu")
 
 }
 
