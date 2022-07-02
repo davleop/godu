@@ -5,12 +5,22 @@ import (
 
     tea "github.com/charmbracelet/bubbletea"
 
-    . "internal/tui"
     . "internal/du"
+    . "internal/tui"
 )
 
 func main() {
-    files, err := ListFilesRecursivelyInParallel(".")
+    directory := "."
+    cPos := 0
+    hidden := false
+    defaultOrdering := "name"
+    directoryOrder := true
+    diskUsage := true
+    // percentage := true, graph, both, none
+    uniqCol := false
+    modifyTime := false
+
+    files, err := ListFilesRecursivelyInParallel(directory)
     if err != nil {
         log.Fatalln(err)
     }
@@ -19,7 +29,9 @@ func main() {
         log.Println(files[0])
     }
 
-    p := tea.NewProgram(InitialModel(), tea.WithAltScreen())
+    initialModel := InitialModel(directory, cPos, hidden, defaultOrdering, directoryOrder, diskUsage, uniqCol, modifyTime, files)
+
+    p := tea.NewProgram(initialModel, tea.WithAltScreen())
     if err := p.Start(); err != nil {
         log.Fatal(err)
     }

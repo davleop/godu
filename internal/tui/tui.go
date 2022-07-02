@@ -4,27 +4,41 @@ import (
     "fmt"
 
     tea "github.com/charmbracelet/bubbletea"
+
+    . "internal/du"
 )
 
-type model struct {
-    choices []string
+type Model struct {
+    currentDirectory string
     cursor  int
-    selected map[int]struct{}
+    showHidden bool
+    order string
+    directoryFirst bool
+    showDiskUsage bool
+    showUniqCol bool
+    modifyTime bool
+    directories []File
 }
 
-func InitialModel() model {
-    return model {
-        choices: []string{"Buy carrots", "Buy celery", "Buy kohlrabi"},
-
-        selected: make(map[int]struct{}),
+func InitialModel(cd string, c int, sh bool, o string, df bool, sdu bool, suc bool, mt bool, f []File) Model {
+    return Model {
+        currentDirectory: cd,
+        cursor: c,
+        showHidden: sh,
+        order: o,
+        directoryFirst: df,
+        showDiskUsage: sdu,
+        showUniqCol: suc,
+        modifyTime: mt,
+        directories: f,
     }
 }
 
-func (m model) Init() tea.Cmd {
+func (m Model) Init() tea.Cmd {
     return tea.Batch(tea.EnterAltScreen)
 }
 
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
     switch msg := msg.(type) {
     case tea.KeyMsg:
         switch msg.String() {
@@ -40,18 +54,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
         case "down", "j":
             // cycle items
-            if m.cursor < len(m.choices)-1 {
+            if m.cursor < len(m.directories)-1 {
                 m.cursor++
             }
 
         case "enter", " ", "l", "right":
             // open selected directory
-            _, ok := m.selected[m.cursor]
-            if ok {
-                delete(m.selected, m.cursor)
-            } else {
-                m.selected[m.cursor] = struct{}{}
-            }
 
         case "left", "h":
             // go to parent directory
@@ -106,10 +114,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
     return m, nil
 }
 
-func (m model) View() string {
-    s := "What should we buy at the market?\n\n"
-
-    for i, choice := range m.choices {
+func (m Model) View() string {
+    /*s := "What should we buy at the market?\n\n"
         cursor := " "
         if m.cursor == i {
             cursor = ">"
@@ -121,9 +127,11 @@ func (m model) View() string {
         }
 
         s += fmt.Sprintf("%s [%s] %s\n", cursor, checked, choice)
-    }
+    }*/
 
-    s += "\nPress q to quit.\n"
+    s := "Header somehow here"
+    s += fmt.Sprintf("Current directory: %s\n")
+    s += "Footer somehow here"
 
     return s
 }
