@@ -3,15 +3,15 @@ package main
 import (
 	"fmt"
 	"io"
-	"path/filepath"
 	"log"
 	"os"
+	"path/filepath"
 
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/cobra"
-    tea "github.com/charmbracelet/bubbletea"
 
-    . "internal/tui"
-    . "internal/du"
+	. "internal/du"
+	. "internal/tui"
 )
 
 /*
@@ -34,7 +34,7 @@ var rootCmd = &cobra.Command{
 		}
 		l := logFlag
 		if l != "" {
-			logFile, err = os.OpenFile(l, os.O_WRONLY, 0600)
+			logFile, err = os.OpenFile(l, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 			if err != nil {
 				err = fmt.Errorf("error opening log file: %w", err)
 			}
@@ -50,7 +50,7 @@ var rootCmd = &cobra.Command{
 		if o == "-" {
 			outputFile = os.Stdout
 		} else {
-			outputFile, err = os.OpenFile(o, os.O_WRONLY, 0600)
+			outputFile, err = os.OpenFile(o, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 			if err != nil {
 				err = fmt.Errorf("error setting output file: %w", err)
 			}
@@ -65,18 +65,29 @@ var rootCmd = &cobra.Command{
 			//needs to have logic for setting input file
 			fmt.Println(f)
 		}
+		e := extendedFlag
+		if e {
+			fmt.Println("Needs implementation of extended information output")
+		}
+		ic := icFlag
+		if ic {
+			fmt.Println("Needs implementation of ignore configuration")
+		}
+
 	},
 }
 
 var (
-	versionFlag bool
-	inputFile   string
-	outputFlag  string
-	outputFile  io.Writer
-	logFlag     string
-	logFile     *os.File
-	err         error
-	dir         string
+	icFlag       bool
+	extendedFlag bool
+	versionFlag  bool
+	inputFile    string
+	outputFlag   string
+	outputFile   io.Writer
+	logFlag      string
+	logFile      *os.File
+	err          error
+	dir          string
 )
 
 func version() {
@@ -89,6 +100,8 @@ func init() {
 	flags.StringVarP(&outputFlag, "output-file", "o", "", "-o [FILE] defines file for data output")
 	flags.StringVarP(&inputFile, "input-file", "f", "", "-f [FILE] defines file for data input")
 	flags.BoolVarP(&versionFlag, "version", "v", false, "-v shows the current version of godu")
+	flags.BoolVarP(&extendedFlag, "extended", "e", false, "-e enables extended information mode")
+	flags.BoolVar(&icFlag, "ignore-config", false, "--ignore-config prevents godu from attempting to load any configuration files")
 
 }
 
@@ -97,17 +110,21 @@ func main() {
 		log.Fatal(err)
 	}
 
-    files, err := ListFilesRecursivelyInParallel(".")
-    if err != nil {
-        log.Fatalln(err)
-    }
+	files, err := ListFilesRecursivelyInParallel(".")
+	if err != nil {
+		log.Fatalln(err)
+	}
 
-    if len(files) > 0 {
-        log.Println(files[0])
-    }
+	if len(files) > 0 {
+		log.Println(files[0])
+	}
 
-    p := tea.NewProgram(InitialModel(), tea.WithAltScreen())
-    if err := p.Start(); err != nil {
-        log.Fatal(err)
-    }
+	p := tea.NewProgram(InitialModel(), tea.WithAltScreen())
+	if err := p.Start(); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func ListFilesRecursivelyInParallel(s string) {
+	panic("unimplemented")
 }
