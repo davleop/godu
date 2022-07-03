@@ -2,43 +2,56 @@ package tui
 
 import (
     "fmt"
+    "strings"
 
+    "github.com/charmbracelet/bubbles/viewport"
     tea "github.com/charmbracelet/bubbletea"
+    "github.com/charmbracelet/lipgloss"
 
     . "internal/du"
 )
 
 type Model struct {
-    currentDirectory string
-    cursor  int
-    showHidden bool
-    order string
-    directoryFirst bool
-    showDiskUsage bool
-    showUniqCol bool
-    modifyTime bool
-    directories []File
+    CurrentDirectory string
+    Cursor  int
+    subcursor int
+    ShowHidden bool
+    Order string
+    DirectoryFirst bool
+    ShowDiskUsage bool
+    ShowUniqCol bool
+    ModifyTime bool
+    Files []File
+    Viewport viewport.Model
+    currentFiles []int
+    Ready bool
+    Content string
 }
 
-func InitialModel(cd string, c int, sh bool, o string, df bool, sdu bool, suc bool, mt bool, f []File) Model {
-    return Model {
-        currentDirectory: cd,
-        cursor: c,
-        showHidden: sh,
-        order: o,
-        directoryFirst: df,
-        showDiskUsage: sdu,
-        showUniqCol: suc,
-        modifyTime: mt,
-        directories: f,
-    }
-}
+var (
+	titleStyle = func() lipgloss.Style {
+		b := lipgloss.RoundedBorder()
+		b.Right = "├"
+		return lipgloss.NewStyle().BorderStyle(b).Padding(0, 1)
+	}()
+
+	infoStyle = func() lipgloss.Style {
+		b := lipgloss.RoundedBorder()
+		b.Left = "┤"
+		return titleStyle.Copy().BorderStyle(b)
+	}()
+)
 
 func (m Model) Init() tea.Cmd {
-    return tea.Batch(tea.EnterAltScreen)
+    return nil
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+    var (
+		cmd  tea.Cmd
+		cmds []tea.Cmd
+	)
+
     switch msg := msg.(type) {
     case tea.KeyMsg:
         switch msg.String() {
@@ -48,14 +61,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
         case "up", "k":
             // cycle items
-            if m.cursor > 0 {
-                m.cursor--
+            if m.subcursor > 0 {
+                m.subcursor--
             }
 
         case "down", "j":
             // cycle items
-            if m.cursor < len(m.directories)-1 {
-                m.cursor++
+            if m.subcursor < len(m.currentFiles)-1 {
+                m.subcursor++
             }
 
         case "enter", " ", "l", "right":
@@ -109,31 +122,72 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
         case "b":
             // spawn shell in current directory
         }
+
+    case tea.WindowSizeMsg:
+        headerHeight := lipgloss.Height(m.headerView())
+        footerHeight := lipgloss.Height(m.footerView())
+        verticalMarginHeight := headerHeight + footerHeight
+
+        if !m.Ready {
+            m.Viewport = viewport.New(msg.Width, msg.Height-verticalMarginHeight)
+            m.Viewport.YPosition = headerHeight
+            //m.Viewport.HighPerformanceRendering = useHighPerformanceRenderer
+            m.Viewport.SetContent(m.Content)
+            m.Ready = true
+
+            m.Viewport.YPosition = headerHeight + 1
+        } else {
+            m.Viewport.Width = msg.Width
+            m.Viewport.Height = msg.Height - verticalMarginHeight
+        }
     }
 
-    return m, nil
+    m.Viewport, cmd = m.Viewport.Update(msg)
+    cmds = append(cmds,cmd)
+
+    return m, tea.Batch(cmds...)
+}
+
+func (m Model) headerView() string {
+    title := titleStyle.Render(fmt.Sprintf("godu: %d ~ %d", m.Cursor, m.subcursor))
+    line := strings.Repeat("-", max(0, m.Viewport.Width-lipgloss.Width(title)))
+    return lipgloss.JoinHorizontal(lipgloss.Center, title, line)
+}
+
+func (m Model) footerView() string {
+    info := infoStyle.Render(fmt.Sprintf("Total disk usage: %d/%v(%d)", m.Cursor, m.currentFiles, len(m.currentFiles)))
+    line := strings.Repeat("-", max(0, m.Viewport.Width-lipgloss.Width(info)))
+    return lipgloss.JoinHorizontal(lipgloss.Center, line, info)
+}
+
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
 }
 
 func (m Model) View() string {
-    /*s := "What should we buy at the market?\n\n"
-        cursor := " "
-        if m.cursor == i {
-            cursor = ">"
+    if !m.Ready {
+        return "\n Initializing..."
+    }
+
+    // here is the base screen of listing the current directory's contents
+    m.Content = ""
+    for i, file := range m.Files {
+        if file.HighDir == m.CurrentDirectory {
+            cursor := " "
+            if i == m.currentFiles[m.subcursor] {
+                cursor = ">"
+            }
+
+            m.currentFiles = append(m.currentFiles, i)
+            m.Content += fmt.Sprintf("%s %d\t%s\n", cursor, file.Size, file.Name)
         }
+    }
+    m.Viewport.SetContent(m.Content)
 
-        checked := " "
-        if _, ok := m.selected[i]; ok {
-            checked = "x"
-        }
-
-        s += fmt.Sprintf("%s [%s] %s\n", cursor, checked, choice)
-    }*/
-
-    s := "Header somehow here"
-    s += fmt.Sprintf("Current directory: %s\n")
-    s += "Footer somehow here"
-
-    return s
+    return fmt.Sprintf("%s\n%s\n%s", m.headerView(), m.Viewport.View(), m.footerView())
 }
 
 

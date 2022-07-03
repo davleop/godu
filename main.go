@@ -11,7 +11,6 @@ import (
 
 func main() {
     directory := "."
-    cPos := 0
     hidden := false
     defaultOrdering := "name"
     directoryOrder := true
@@ -25,11 +24,16 @@ func main() {
         log.Fatalln(err)
     }
 
-    if len(files) > 0 {
-        log.Println(files[0])
+    initialModel := Model {
+        CurrentDirectory: directory,
+        ShowHidden: hidden,
+        Order: defaultOrdering,
+        DirectoryFirst: directoryOrder,
+        ShowDiskUsage: diskUsage,
+        ShowUniqCol: uniqCol,
+        ModifyTime: modifyTime,
+        Files: files,
     }
-
-    initialModel := InitialModel(directory, cPos, hidden, defaultOrdering, directoryOrder, diskUsage, uniqCol, modifyTime, files)
 
     p := tea.NewProgram(initialModel, tea.WithAltScreen())
     if err := p.Start(); err != nil {
