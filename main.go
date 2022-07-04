@@ -7,11 +7,10 @@ import (
 	"os"
 	"path/filepath"
 
-	tea "github.com/charmbracelet/bubbletea"
+	//tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/cobra"
-
-	. "internal/du"
-	. "internal/tui"
+	//. "internal/du"
+	//. "internal/tui"
 )
 
 /*
@@ -73,11 +72,37 @@ var rootCmd = &cobra.Command{
 		if ic {
 			fmt.Println("Needs implementation of ignore configuration")
 		}
-
+		x := xFlag
+		if x {
+			fmt.Println("Needs implementation of filesystem boundaries")
+		}
+		c := cfsFlag
+		if c {
+			fmt.Println("Needs implementation of filesystem boundaries")
+		}
+		ex := exclude
+		if len(ex) != 0 {
+			for i := 0; i < len(ex); i++ {
+				fmt.Println(ex[i])
+			}
+		}
+		bX := bigXFlag
+		if bX != "" {
+			fmt.Println("Needs implementation of Exclusion Files")
+		}
+		sym := symLinkFlag
+		if sym {
+			fmt.Println("Needs implementation of symLink following")
+		}
 	},
 }
 
 var (
+	symLinkFlag  bool
+	bigXFlag     string
+	exclude      []string
+	cfsFlag      bool
+	xFlag        bool
 	icFlag       bool
 	extendedFlag bool
 	versionFlag  bool
@@ -102,6 +127,13 @@ func init() {
 	flags.BoolVarP(&versionFlag, "version", "v", false, "-v shows the current version of godu")
 	flags.BoolVarP(&extendedFlag, "extended", "e", false, "-e enables extended information mode")
 	flags.BoolVar(&icFlag, "ignore-config", false, "--ignore-config prevents godu from attempting to load any configuration files")
+	flags.BoolVarP(&xFlag, "one-file-system", "x", false, "-x prevents godu from crossing filesystem boundaries, i.e. only count files and directories on the same filesystem as the directory being scanned")
+	flags.BoolVar(&cfsFlag, "cross-file-system", false, "--cross-file-system allows godu to cross filesystem boundaries. This is the default, but can be specified to overrule a previously given '-x'")
+	flags.StringArrayVar(&exclude, "exclude", exclude, "--exclude [PATTERN] excludes files that match PATTERN. The files will still be displayed by default, but are not counted towards the disk usage statistics. This argument can be added multiple times to add more patterns.")
+	flags.StringVarP(&bigXFlag, "exclude-from", "X", "", "-X [FILE], --exclude-from [FILE] Exclude files that match any pattern in FILE. Patterns should be separated by a newline.")
+	//ask about cache file flag in code review
+	flags.BoolVarP(&symLinkFlag, "follow-symlinks", "L", false, "-L, --follow-symlinks follows symlinks and counts the size of the file they point to.")
+	//ask about kernfs in code review. It's specifically for linux.
 
 }
 
@@ -110,7 +142,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	files, err := ListFilesRecursivelyInParallel(".")
+	/*files, err := ListFilesRecursivelyInParallel(".")
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -122,9 +154,9 @@ func main() {
 	p := tea.NewProgram(InitialModel(), tea.WithAltScreen())
 	if err := p.Start(); err != nil {
 		log.Fatal(err)
-	}
+	}*/
 }
 
-func ListFilesRecursivelyInParallel(s string) {
+/*func ListFilesRecursivelyInParallel(s string) {
 	panic("unimplemented")
-}
+}*/
