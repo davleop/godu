@@ -14,7 +14,7 @@ import (
 type Model struct {
     CurrentDirectory string
     Cursor  int
-    subcursor int
+    Subcursor int
     ShowHidden bool
     Order string
     DirectoryFirst bool
@@ -22,8 +22,8 @@ type Model struct {
     ShowUniqCol bool
     ModifyTime bool
     Files []File
+    currentFiles []File
     Viewport viewport.Model
-    currentFiles []int
     Ready bool
     Content string
 }
@@ -61,14 +61,16 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
         case "up", "k":
             // cycle items
-            if m.subcursor > 0 {
-                m.subcursor--
+            if m.Cursor > 0 {
+                m.Cursor--
+                m.Subcursor--
             }
 
         case "down", "j":
             // cycle items
-            if m.subcursor < len(m.currentFiles)-1 {
-                m.subcursor++
+            if m.Cursor < len(m.currentFiles)-1 {
+                m.Cursor++
+                m.Subcursor++
             }
 
         case "enter", " ", "l", "right":
@@ -149,13 +151,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) headerView() string {
-    title := titleStyle.Render(fmt.Sprintf("godu: %d ~ %d", m.Cursor, m.subcursor))
+    title := titleStyle.Render(fmt.Sprintf("godu <version>"))
     line := strings.Repeat("-", max(0, m.Viewport.Width-lipgloss.Width(title)))
     return lipgloss.JoinHorizontal(lipgloss.Center, title, line)
 }
 
 func (m Model) footerView() string {
-    info := infoStyle.Render(fmt.Sprintf("Total disk usage: %d/%v(%d)", m.Cursor, m.currentFiles, len(m.currentFiles)))
+    info := infoStyle.Render(fmt.Sprintf("Total disk usage: %d", m.Subcursor))
     line := strings.Repeat("-", max(0, m.Viewport.Width-lipgloss.Width(info)))
     return lipgloss.JoinHorizontal(lipgloss.Center, line, info)
 }
@@ -172,18 +174,23 @@ func (m Model) View() string {
         return "\n Initializing..."
     }
 
-    // here is the base screen of listing the current directory's contents
-    m.Content = ""
-    for i, file := range m.Files {
+    for _, file := range m.Files {
         if file.HighDir == m.CurrentDirectory {
-            cursor := " "
-            if i == m.currentFiles[m.subcursor] {
-                cursor = ">"
-            }
-
-            m.currentFiles = append(m.currentFiles, i)
-            m.Content += fmt.Sprintf("%s %d\t%s\n", cursor, file.Size, file.Name)
+            m.currentFiles = append(m.currentFiles, file)
         }
+    }
+
+    m.Content = ""
+    for i, file := range m.currentFiles {
+        cursor := " "
+        if m.Cursor == i {
+            cursor = ">"
+        }
+        m.Content += fmt.Sprintf("%s %d\t%s\n", cursor, file.Size, file.Name)
+    }
+    m.Content += fmt.Sprintf("\nCursor: %d\n", m.Cursor)
+    for _, file := range m.currentFiles {
+        m.Content += fmt.Sprintln(file)
     }
     m.Viewport.SetContent(m.Content)
 
