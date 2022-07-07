@@ -1,19 +1,76 @@
 package tui
 
 import (
-	"fmt"
-	"strings"
+	. "internal/du"
 
-	"github.com/charmbracelet/bubbles/viewport"
+	"github.com/charmbracelet/bubbles/key"
+	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-
-	. "internal/du"
 )
 
-const useHighPerformanceRenderer = false
+var (
+	appStyle = lipgloss.NewStyle().Padding(1, 2)
+
+	titleStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("FFFDF5")).
+			Background(lipgloss.Color("25A065")).
+			Padding(0, 1)
+
+	statusMessageStyle = lipgloss.NewStyle().
+				Foreground(lipgloss.AdaptiveColor{"Light": "#04B575", "Dark": "#04B575"}).
+				Render
+)
+
+type item struct {
+	title       string
+	description string
+}
+
+func (i item) Title() string       { return i.title }
+func (i item) Description() string { return i.description }
+func (i item) FilterValue() string { return i.title }
+
+type listKeyMap struct {
+	toggleSpinner    key.Binding
+	toggleTitleBar   key.Binding
+	toggleStatusBar  key.Binding
+	togglePagination key.Binding
+	toggleHelpMenu   key.Binding
+	insertItem       key.Binding
+}
+
+func newListKeyMap() *listKeyMap {
+	return &listKeyMap{
+		insertItem: key.NewBinding(
+			key.WithKeys("a"),
+			key.WithHelp("a", "add item"),
+		),
+		toggleSpinner: key.NewBinding(
+			key.WithKeys("s"),
+			key.WithHelp("s", "toggle spinner"),
+		),
+		toggleTitleBar: key.NewBinding(
+			key.WithKeys("T"),
+			key.WithHelp("T", "toggle title"),
+		),
+		toggleStatusBar: key.NewBinding(
+			key.WithKeys("S"),
+			key.WithHelp("S", "toggle status"),
+		),
+		togglePagination: key.NewBinding(
+			key.WithKeys("P"),
+			key.WithHelp("P", "toggle pagination"),
+		),
+		toggleHelpMenu: key.NewBinding(
+			key.WithKeys("H"),
+			key.WithHelp("H", "toggle help"),
+		),
+	}
+}
 
 type Model struct {
+	// This section is for maintaining the `du` content
 	CurrentDirectory string
 	Cursor           int
 	Subcursor        int
@@ -25,30 +82,22 @@ type Model struct {
 	ModifyTime       bool
 	Files            []File
 	currentFiles     []File
-	Viewport         viewport.Model
-	Ready            bool
-	Content          string
+
+	// the rest is for actually maintaining the TUI display
+	list         list.Model
+	keys         *listKeyMap
+	delegateKeys *delegateKeyMap
 }
 
-var (
-	titleStyle = func() lipgloss.Style {
-		b := lipgloss.RoundedBorder()
-		b.Right = "├"
-		return lipgloss.NewStyle().BorderStyle(b).Padding(0, 1)
-	}()
-
-	infoStyle = func() lipgloss.Style {
-		b := lipgloss.RoundedBorder()
-		b.Left = "┤"
-		return titleStyle.Copy().BorderStyle(b)
-	}()
-)
+func NewModel(m Model) model {
+	//
+}
 
 func (m Model) Init() tea.Cmd {
-	return nil
+	return tea.EnterAltScreen
 }
 
-func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+/*func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var (
 		cmd  tea.Cmd
 		cmds []tea.Cmd
@@ -156,18 +205,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-func (m Model) headerView() string {
-	title := titleStyle.Render(fmt.Sprintf("godu <version>"))
-	line := strings.Repeat("-", max(0, m.Viewport.Width-lipgloss.Width(title)))
-	return lipgloss.JoinHorizontal(lipgloss.Center, title, line)
-}
-
-func (m Model) footerView() string {
-	info := infoStyle.Render(fmt.Sprintf("Total disk usage: %d", m.Subcursor))
-	line := strings.Repeat("-", max(0, m.Viewport.Width-lipgloss.Width(info)))
-	return lipgloss.JoinHorizontal(lipgloss.Center, line, info)
-}
-
 func (m Model) fileView() string {
 	s := ""
 	for _, file := range m.Files {
@@ -205,4 +242,4 @@ func (m Model) View() string {
 
 	m.Viewport.SetContent(m.fileView())
 	return fmt.Sprintf("%s\n%s\n%s", m.headerView(), m.Viewport.View(), m.footerView())
-}
+}*/
