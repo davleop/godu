@@ -16,8 +16,8 @@ var ComputeHashes = true
 // File is the object that contains the info and path of the file
 type File struct {
 	Path    string
-    HighDir string
-    Name    string
+    	HighDir string
+    	Name    string
 	Size    int64
 	Mode    os.FileMode
 	ModTime time.Time
