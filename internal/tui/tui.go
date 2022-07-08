@@ -18,7 +18,7 @@ var (
 			Padding(0, 1)
 
 	statusMessageStyle = lipgloss.NewStyle().
-				Foreground(lipgloss.AdaptiveColor{"Light": "#04B575", "Dark": "#04B575"}).
+				Foreground(lipgloss.AdaptiveColor{Light: "#04B575", Dark: "#04B575"}).
 				Render
 )
 
@@ -89,157 +89,102 @@ type Model struct {
 	delegateKeys *delegateKeyMap
 }
 
-func NewModel(m Model) model {
-	//
-}
-
-func (m Model) Init() tea.Cmd {
-	return tea.EnterAltScreen
-}
-
-/*func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func NewModel(m Model) Model {
 	var (
-		cmd  tea.Cmd
-		cmds []tea.Cmd
+		delegateKeys = newDelegateKeyMap()
+		listKeys     = newListKeyMap()
 	)
 
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+c", "q", "esc":
-			// exit
-			return m, tea.Quit
-
-		case "up", "k":
-			// cycle items
-			if m.Cursor > 0 {
-				m.Cursor--
-				m.Subcursor--
-			}
-
-		case "down", "j":
-			// cycle items
-			if m.Cursor < len(m.currentFiles)-1 {
-				m.Cursor++
-				m.Subcursor++
-			}
-
-		case "enter", " ", "l", "right":
-			// open selected directory
-
-		case "left", "h":
-			// go to parent directory
-
-		case "n":
-			// order by filename
-
-		case "s":
-			// order by size
-
-		case "C":
-			// order by number of items
-
-		case "a":
-			// toggle disk usage/apparent size
-
-		case "M":
-			// order by latest modify time
-
-		case "d":
-			// delete selected file or directory
-
-		case "t":
-			// toggles directories before files when sorting
-
-		case "g":
-			// toggles percentage, graph, both, or none
-
-		case "u":
-			// toggle display of shared/unique size column for directories
-
-		case "c":
-			// toggle display of child counts
-
-		case "m":
-			// toggle display of latest modify time
-
-		case "e":
-			// Show/hide hidden files and directories
-
-		case "i":
-			// show information about selected item
-
-		case "r":
-			// refresh calculations in the current directory
-
-		case "b":
-			// spawn shell in current directory
-		}
-
-	case tea.WindowSizeMsg:
-		headerHeight := lipgloss.Height(m.headerView())
-		footerHeight := lipgloss.Height(m.footerView())
-		verticalMarginHeight := headerHeight + footerHeight
-
-		if !m.Ready {
-			m.Viewport = viewport.New(msg.Width, msg.Height-verticalMarginHeight)
-			m.Viewport.YPosition = headerHeight
-			m.Viewport.HighPerformanceRendering = useHighPerformanceRenderer
-			m.Viewport.SetContent(m.Content)
-			m.Ready = true
-
-			m.Viewport.YPosition = headerHeight + 1
-		} else {
-			m.Viewport.Width = msg.Width
-			m.Viewport.Height = msg.Height - verticalMarginHeight
-		}
-
-		if useHighPerformanceRenderer {
-			cmds = append(cmds, viewport.Sync(m.Viewport))
-		}
-	}
-
-	m.Viewport, cmd = m.Viewport.Update(msg)
-	cmds = append(cmds, cmd)
-
-	return m, tea.Batch(cmds...)
-}
-
-func (m Model) fileView() string {
-	s := ""
 	for _, file := range m.Files {
 		if file.HighDir == m.CurrentDirectory {
 			m.currentFiles = append(m.currentFiles, file)
 		}
 	}
 
-	m.Content = ""
-	for i, file := range m.currentFiles {
-		cursor := " "
-		if m.Cursor == i {
-			cursor = ">"
+	// Create list
+	numItems := len(m.currentFiles)
+	items := make([]list.Item, numItems)
+	for i := 0; i < numItems; i++ {
+		items[i] = item{title: m.currentFiles[i].Name, description: m.currentFiles[i].HighDir}
+	}
+
+	// Setup list
+	delegate := newItemDelegate(delegateKeys)
+	currentFiles := list.New(items, delegate, 0, 0)
+	currentFiles.Title = "godu <version>"
+	currentFiles.Styles.Title = titleStyle
+	currentFiles.AdditionalFullHelpKeys = func() []key.Binding {
+		return []key.Binding{
+			listKeys.toggleSpinner,
+			listKeys.insertItem,
+			listKeys.toggleTitleBar,
+			listKeys.toggleStatusBar,
+			listKeys.togglePagination,
+			listKeys.toggleHelpMenu,
 		}
-		s += fmt.Sprintf("%s %d\t%s\n", cursor, file.Size, file.Name)
 	}
-	s += fmt.Sprintf("\nCursor: %d\n", m.Cursor)
-	for _, file := range m.currentFiles {
-		s += fmt.Sprintln(file)
-	}
-	return s
+
+	m.list = currentFiles
+	m.keys = listKeys
+	m.delegateKeys = delegateKeys
+
+	return m
 }
 
-func max(a, b int) int {
-	if a > b {
-		return a
+func (m Model) Init() tea.Cmd {
+	return tea.EnterAltScreen
+}
+
+func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmds []tea.Cmd
+
+	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		h, v := appStyle.GetFrameSize()
+		m.list.SetSize(msg.Width-h, msg.Height-v)
+
+	case tea.KeyMsg:
+		if m.list.FilterState() == list.Filtering {
+			break
+		}
+
+		switch {
+		case key.Matches(msg, m.keys.toggleSpinner):
+			cmd := m.list.ToggleSpinner()
+			return m, cmd
+
+		case key.Matches(msg, m.keys.toggleTitleBar):
+			v := !m.list.ShowTitle()
+			m.list.SetShowTitle(v)
+			m.list.SetShowFilter(v)
+			m.list.SetFilteringEnabled(v)
+			return m, nil
+
+		case key.Matches(msg, m.keys.toggleStatusBar):
+			m.list.SetShowStatusBar(!m.list.ShowStatusBar())
+			return m, nil
+
+		case key.Matches(msg, m.keys.togglePagination):
+			m.list.SetShowPagination(!m.list.ShowPagination())
+			return m, nil
+
+		case key.Matches(msg, m.keys.toggleHelpMenu):
+			m.list.SetShowHelp(!m.list.ShowHelp())
+			return m, nil
+
+		case key.Matches(msg, m.keys.insertItem):
+			m.delegateKeys.remove.SetEnabled(true)
+			return m, nil // tea.Batch()
+		}
 	}
-	return b
+
+	newListModel, cmd := m.list.Update(msg)
+	m.list = newListModel
+	cmds = append(cmds, cmd)
+
+	return m, tea.Batch(cmds...)
 }
 
 func (m Model) View() string {
-	if !m.Ready {
-		return "\n Initializing..."
-	}
-
-	m.Viewport.SetContent(m.fileView())
-	return fmt.Sprintf("%s\n%s\n%s", m.headerView(), m.Viewport.View(), m.footerView())
-}*/
+	return appStyle.Render(m.list.View())
+}
