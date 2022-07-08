@@ -7,10 +7,11 @@ import (
 	"os"
 	"path/filepath"
 
-	//tea "github.com/charmbracelet/bubbletea"
+	du "internal/du"
+	tui "internal/tui"
+
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/cobra"
-	//. "internal/du"
-	//. "internal/tui"
 )
 
 /*
@@ -142,19 +143,39 @@ func main() {
 		log.Fatal(err)
 	}
 
-	/*files, err := ListFilesRecursivelyInParallel(".")
+	files, err := ListFilesRecursivelyInParallel(".")
+	if err != nil {
+		log.Fatalln(err)
+	}
+	directory := "."
+	hidden := false
+	defaultOrdering := "name"
+	directoryOrder := true
+	diskUsage := true
+	// percentage := true, graph, both, none
+	uniqCol := false
+	modifyTime := false
+
+	files, err := du.ListFilesRecursivelyInParallel(directory)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	if len(files) > 0 {
-		log.Println(files[0])
+	initialModel := tui.Model{
+		CurrentDirectory: directory,
+		ShowHidden:       hidden,
+		Order:            defaultOrdering,
+		DirectoryFirst:   directoryOrder,
+		ShowDiskUsage:    diskUsage,
+		ShowUniqCol:      uniqCol,
+		ModifyTime:       modifyTime,
+		Files:            files,
 	}
 
-	p := tea.NewProgram(InitialModel(), tea.WithAltScreen())
+	p := tea.NewProgram(tui.NewModel(initialModel), tea.WithAltScreen())
 	if err := p.Start(); err != nil {
 		log.Fatal(err)
-	}*/
+	}
 }
 
 /*func ListFilesRecursivelyInParallel(s string) {

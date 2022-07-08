@@ -1,131 +1,190 @@
 package tui
 
 import (
-    "fmt"
+	. "internal/du"
 
-    tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/bubbles/key"
+	"github.com/charmbracelet/bubbles/list"
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
-type model struct {
-    choices []string
-    cursor  int
-    selected map[int]struct{}
+var (
+	appStyle = lipgloss.NewStyle().Padding(1, 2)
+
+	titleStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("FFFDF5")).
+			Background(lipgloss.Color("25A065")).
+			Padding(0, 1)
+
+	statusMessageStyle = lipgloss.NewStyle().
+				Foreground(lipgloss.AdaptiveColor{Light: "#04B575", Dark: "#04B575"}).
+				Render
+)
+
+type item struct {
+	title       string
+	description string
 }
 
-func InitialModel() model {
-    return model {
-        choices: []string{"Buy carrots", "Buy celery", "Buy kohlrabi"},
+func (i item) Title() string       { return i.title }
+func (i item) Description() string { return i.description }
+func (i item) FilterValue() string { return i.title }
 
-        selected: make(map[int]struct{}),
-    }
+type listKeyMap struct {
+	toggleSpinner    key.Binding
+	toggleTitleBar   key.Binding
+	toggleStatusBar  key.Binding
+	togglePagination key.Binding
+	toggleHelpMenu   key.Binding
+	insertItem       key.Binding
 }
 
-func (m model) Init() tea.Cmd {
-    return tea.Batch(tea.EnterAltScreen)
+func newListKeyMap() *listKeyMap {
+	return &listKeyMap{
+		insertItem: key.NewBinding(
+			key.WithKeys("a"),
+			key.WithHelp("a", "add item"),
+		),
+		toggleSpinner: key.NewBinding(
+			key.WithKeys("s"),
+			key.WithHelp("s", "toggle spinner"),
+		),
+		toggleTitleBar: key.NewBinding(
+			key.WithKeys("T"),
+			key.WithHelp("T", "toggle title"),
+		),
+		toggleStatusBar: key.NewBinding(
+			key.WithKeys("S"),
+			key.WithHelp("S", "toggle status"),
+		),
+		togglePagination: key.NewBinding(
+			key.WithKeys("P"),
+			key.WithHelp("P", "toggle pagination"),
+		),
+		toggleHelpMenu: key.NewBinding(
+			key.WithKeys("H"),
+			key.WithHelp("H", "toggle help"),
+		),
+	}
 }
 
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-    switch msg := msg.(type) {
-    case tea.KeyMsg:
-        switch msg.String() {
-        case "ctrl+c", "q", "esc":
-            // exit
-            return m, tea.Quit
+type Model struct {
+	// This section is for maintaining the `du` content
+	CurrentDirectory string
+	Cursor           int
+	Subcursor        int
+	ShowHidden       bool
+	Order            string
+	DirectoryFirst   bool
+	ShowDiskUsage    bool
+	ShowUniqCol      bool
+	ModifyTime       bool
+	Files            []File
+	currentFiles     []File
 
-        case "up", "k":
-            // cycle items
-            if m.cursor > 0 {
-                m.cursor--
-            }
-
-        case "down", "j":
-            // cycle items
-            if m.cursor < len(m.choices)-1 {
-                m.cursor++
-            }
-
-        case "enter", " ", "l", "right":
-            // open selected directory
-            _, ok := m.selected[m.cursor]
-            if ok {
-                delete(m.selected, m.cursor)
-            } else {
-                m.selected[m.cursor] = struct{}{}
-            }
-
-        case "left", "h":
-            // go to parent directory
-
-        case "n":
-            // order by filename
-
-        case "s":
-            // order by size
-
-        case "C":
-            // order by number of items
-
-        case "a":
-            // toggle disk usage/apparent size
-
-        case "M":
-            // order by latest modify time
-
-        case "d":
-            // delete selected file or directory
-
-        case "t":
-            // toggles directories before files when sorting
-
-        case "g":
-            // toggles percentage, graph, both, or none
-
-        case "u":
-            // toggle display of shared/unique size column for directories
-
-        case "c":
-            // toggle display of child counts
-
-        case "m":
-            // toggle display of latest modify time
-
-        case "e":
-            // Show/hide hidden files and directories
-
-        case "i":
-            // show information about selected item
-
-        case "r":
-            // refresh calculations in the current directory
-
-        case "b":
-            // spawn shell in current directory
-        }
-    }
-
-    return m, nil
+	// the rest is for actually maintaining the TUI display
+	list         list.Model
+	keys         *listKeyMap
+	delegateKeys *delegateKeyMap
 }
 
-func (m model) View() string {
-    s := "What should we buy at the market?\n\n"
+func NewModel(m Model) Model {
+	var (
+		delegateKeys = newDelegateKeyMap()
+		listKeys     = newListKeyMap()
+	)
 
-    for i, choice := range m.choices {
-        cursor := " "
-        if m.cursor == i {
-            cursor = ">"
-        }
+	for _, file := range m.Files {
+		if file.HighDir == m.CurrentDirectory {
+			m.currentFiles = append(m.currentFiles, file)
+		}
+	}
 
-        checked := " "
-        if _, ok := m.selected[i]; ok {
-            checked = "x"
-        }
+	// Create list
+	numItems := len(m.currentFiles)
+	items := make([]list.Item, numItems)
+	for i := 0; i < numItems; i++ {
+		items[i] = item{title: m.currentFiles[i].Name, description: m.currentFiles[i].HighDir}
+	}
 
-        s += fmt.Sprintf("%s [%s] %s\n", cursor, checked, choice)
-    }
+	// Setup list
+	delegate := newItemDelegate(delegateKeys)
+	currentFiles := list.New(items, delegate, 0, 0)
+	currentFiles.Title = "godu <version>"
+	currentFiles.Styles.Title = titleStyle
+	currentFiles.AdditionalFullHelpKeys = func() []key.Binding {
+		return []key.Binding{
+			listKeys.toggleSpinner,
+			listKeys.insertItem,
+			listKeys.toggleTitleBar,
+			listKeys.toggleStatusBar,
+			listKeys.togglePagination,
+			listKeys.toggleHelpMenu,
+		}
+	}
 
-    s += "\nPress q to quit.\n"
+	m.list = currentFiles
+	m.keys = listKeys
+	m.delegateKeys = delegateKeys
 
-    return s
+	return m
 }
 
+func (m Model) Init() tea.Cmd {
+	return tea.EnterAltScreen
+}
 
+func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmds []tea.Cmd
+
+	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		h, v := appStyle.GetFrameSize()
+		m.list.SetSize(msg.Width-h, msg.Height-v)
+
+	case tea.KeyMsg:
+		if m.list.FilterState() == list.Filtering {
+			break
+		}
+
+		switch {
+		case key.Matches(msg, m.keys.toggleSpinner):
+			cmd := m.list.ToggleSpinner()
+			return m, cmd
+
+		case key.Matches(msg, m.keys.toggleTitleBar):
+			v := !m.list.ShowTitle()
+			m.list.SetShowTitle(v)
+			m.list.SetShowFilter(v)
+			m.list.SetFilteringEnabled(v)
+			return m, nil
+
+		case key.Matches(msg, m.keys.toggleStatusBar):
+			m.list.SetShowStatusBar(!m.list.ShowStatusBar())
+			return m, nil
+
+		case key.Matches(msg, m.keys.togglePagination):
+			m.list.SetShowPagination(!m.list.ShowPagination())
+			return m, nil
+
+		case key.Matches(msg, m.keys.toggleHelpMenu):
+			m.list.SetShowHelp(!m.list.ShowHelp())
+			return m, nil
+
+		case key.Matches(msg, m.keys.insertItem):
+			m.delegateKeys.remove.SetEnabled(true)
+			return m, nil // tea.Batch()
+		}
+	}
+
+	newListModel, cmd := m.list.Update(msg)
+	m.list = newListModel
+	cmds = append(cmds, cmd)
+
+	return m, tea.Batch(cmds...)
+}
+
+func (m Model) View() string {
+	return appStyle.Render(m.list.View())
+}

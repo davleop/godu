@@ -16,6 +16,8 @@ var ComputeHashes = true
 // File is the object that contains the info and path of the file
 type File struct {
 	Path    string
+    	HighDir string
+    	Name    string
 	Size    int64
 	Mode    os.FileMode
 	ModTime time.Time
@@ -37,6 +39,8 @@ func ListFilesRecursivelyInParallel(dir string) (files []File, err error) {
 	files = []File{
 		{
 			Path:    dir,
+            HighDir: dir,
+            Name:    dir,
 			Size:    info.Size(),
 			Mode:    info.Mode(),
 			ModTime: info.ModTime(),
@@ -86,6 +90,8 @@ func listFilesInParallel(dir string, startedDirectories chan bool, fileChan chan
 	for _, f := range files {
 		fileStruct := File{
 			Path:    path.Join(dir, f.Name()),
+            HighDir: dir,
+            Name:    f.Name(),
 			Size:    f.Size(),
 			Mode:    f.Mode(),
 			ModTime: f.ModTime(),
