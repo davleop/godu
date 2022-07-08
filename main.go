@@ -3,15 +3,15 @@ package main
 import (
 	"fmt"
 	"io"
-	"path/filepath"
 	"log"
 	"os"
+	"path/filepath"
 
+	du "internal/du"
+	tui "internal/tui"
+
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/cobra"
-    tea "github.com/charmbracelet/bubbletea"
-
-    . "internal/tui"
-    . "internal/du"
 )
 
 /*
@@ -97,17 +97,37 @@ func main() {
 		log.Fatal(err)
 	}
 
-    files, err := ListFilesRecursivelyInParallel(".")
-    if err != nil {
-        log.Fatalln(err)
-    }
+	files, err := ListFilesRecursivelyInParallel(".")
+	if err != nil {
+		log.Fatalln(err)
+	}
+	directory := "."
+	hidden := false
+	defaultOrdering := "name"
+	directoryOrder := true
+	diskUsage := true
+	// percentage := true, graph, both, none
+	uniqCol := false
+	modifyTime := false
 
-    if len(files) > 0 {
-        log.Println(files[0])
-    }
+	files, err := du.ListFilesRecursivelyInParallel(directory)
+	if err != nil {
+		log.Fatalln(err)
+	}
 
-    p := tea.NewProgram(InitialModel(), tea.WithAltScreen())
-    if err := p.Start(); err != nil {
-        log.Fatal(err)
-    }
+	initialModel := tui.Model{
+		CurrentDirectory: directory,
+		ShowHidden:       hidden,
+		Order:            defaultOrdering,
+		DirectoryFirst:   directoryOrder,
+		ShowDiskUsage:    diskUsage,
+		ShowUniqCol:      uniqCol,
+		ModifyTime:       modifyTime,
+		Files:            files,
+	}
+
+	p := tea.NewProgram(tui.NewModel(initialModel), tea.WithAltScreen())
+	if err := p.Start(); err != nil {
+		log.Fatal(err)
+	}
 }
