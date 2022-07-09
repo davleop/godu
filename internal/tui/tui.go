@@ -1,7 +1,9 @@
 package tui
 
 import (
+	"fmt"
 	. "internal/du"
+	"strings"
 
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
@@ -12,10 +14,16 @@ import (
 var (
 	appStyle = lipgloss.NewStyle().Padding(1, 2)
 
-	titleStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("FFFDF5")).
-			Background(lipgloss.Color("25A065")).
-			Padding(0, 1)
+	/*titleStyle = lipgloss.NewStyle().
+	Foreground(lipgloss.Color("FFFDF5")).
+	Background(lipgloss.Color("25A065")).
+	Padding(0, 1)*/
+
+	titleStyle = func() lipgloss.Style {
+		b := lipgloss.RoundedBorder()
+		b.Right = "├"
+		return lipgloss.NewStyle().BorderStyle(b).Padding(0, 1)
+	}()
 
 	statusMessageStyle = lipgloss.NewStyle().
 				Foreground(lipgloss.AdaptiveColor{Light: "#04B575", Dark: "#04B575"}).
@@ -105,13 +113,17 @@ func NewModel(m Model) Model {
 	numItems := len(m.currentFiles)
 	items := make([]list.Item, numItems)
 	for i := 0; i < numItems; i++ {
-		items[i] = item{title: m.currentFiles[i].Name, description: m.currentFiles[i].HighDir}
+		current := m.currentFiles[i]
+		title := fmt.Sprintf("%d\t%s", current.Size, current.Name)
+		items[i] = item{title: title}
 	}
 
 	// Setup list
 	delegate := newItemDelegate(delegateKeys)
+	delegate.ShowDescription = false
 	currentFiles := list.New(items, delegate, 0, 0)
-	currentFiles.Title = "godu <version>"
+	title := "godu <version>"
+	currentFiles.Title = strings.Repeat("─", max(0, m.list.Width()-lipgloss.Width(title)))
 	currentFiles.Styles.Title = titleStyle
 	currentFiles.AdditionalFullHelpKeys = func() []key.Binding {
 		return []key.Binding{
@@ -187,4 +199,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m Model) View() string {
 	return appStyle.Render(m.list.View())
+}
+
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
 }
