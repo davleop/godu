@@ -97,10 +97,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-	files, err := ListFilesRecursivelyInParallel(".")
-	if err != nil {
-		log.Fatalln(err)
-	}
 	directory := "."
 	hidden := false
 	defaultOrdering := "name"
