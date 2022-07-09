@@ -39,13 +39,7 @@ var rootCmd = &cobra.Command{
 				err = fmt.Errorf("error opening log file: %w", err)
 			}
 		}
-		defer func() {
-			cerr := logFile.Close()
-			if err == nil {
-				err = cerr
-			}
-		}()
-		log.SetOutput(logFile)
+
 		o := outputFlag
 		if o == "-" {
 			outputFile = os.Stdout
@@ -55,6 +49,15 @@ var rootCmd = &cobra.Command{
 				err = fmt.Errorf("error setting output file: %w", err)
 			}
 		}
+
+		defer func() {
+			cerr := logFile.Close()
+			if err == nil {
+				err = cerr
+			}
+		}()
+		log.SetOutput(logFile)
+
 		if len(args) == 1 {
 			dir, _ = filepath.Abs(args[0])
 		} else {
@@ -132,9 +135,7 @@ func init() {
 	flags.BoolVar(&cfsFlag, "cross-file-system", false, "--cross-file-system allows godu to cross filesystem boundaries. This is the default, but can be specified to overrule a previously given '-x'")
 	flags.StringArrayVar(&exclude, "exclude", exclude, "--exclude [PATTERN] excludes files that match PATTERN. The files will still be displayed by default, but are not counted towards the disk usage statistics. This argument can be added multiple times to add more patterns.")
 	flags.StringVarP(&bigXFlag, "exclude-from", "X", "", "-X [FILE], --exclude-from [FILE] Exclude files that match any pattern in FILE. Patterns should be separated by a newline.")
-	//ask about cache file flag in code review
 	flags.BoolVarP(&symLinkFlag, "follow-symlinks", "L", false, "-L, --follow-symlinks follows symlinks and counts the size of the file they point to.")
-	//ask about kernfs in code review. It's specifically for linux.
 
 }
 
@@ -173,7 +174,3 @@ func main() {
 		log.Fatal(err)
 	}
 }
-
-/*func ListFilesRecursivelyInParallel(s string) {
-	panic("unimplemented")
-}*/
