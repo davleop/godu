@@ -102,6 +102,7 @@ var rootCmd = &cobra.Command{
 }
 
 var (
+	//Scan and mode selection options
 	symLinkFlag  bool
 	bigXFlag     string
 	exclude      []string
@@ -117,6 +118,13 @@ var (
 	logFile      *os.File
 	err          error
 	dir          string
+	//interface options
+	zeroFlag bool
+	oneFlag  bool
+	twoFlag  bool
+	qFlag    bool
+	fastFlag bool
+	slowFlag bool
 )
 
 func version() {
@@ -126,6 +134,7 @@ func version() {
 func init() {
 	flags := rootCmd.Flags()
 
+	//Scan and mode selection option flags
 	flags.StringVarP(&outputFlag, "output-file", "o", "", "-o [FILE] defines file for data output")
 	flags.StringVarP(&inputFile, "input-file", "f", "", "-f [FILE] defines file for data input")
 	flags.BoolVarP(&versionFlag, "version", "v", false, "-v shows the current version of godu")
@@ -136,6 +145,14 @@ func init() {
 	flags.StringArrayVar(&exclude, "exclude", exclude, "--exclude [PATTERN] excludes files that match PATTERN. The files will still be displayed by default, but are not counted towards the disk usage statistics. This argument can be added multiple times to add more patterns.")
 	flags.StringVarP(&bigXFlag, "exclude-from", "X", "", "-X [FILE], --exclude-from [FILE] Exclude files that match any pattern in FILE. Patterns should be separated by a newline.")
 	flags.BoolVarP(&symLinkFlag, "follow-symlinks", "L", false, "-L, --follow-symlinks follows symlinks and counts the size of the file they point to.")
+
+	//interface option flags
+	flags.BoolVar(&zeroFlag, "0", true, "Don't give any feedback while scanning a directory or importing a file, other than when a fatal error occurs. This option is the default when exporting to standard output.")
+	flags.BoolVar(&oneFlag, "1", false, "Similar to -0, but does give feedback on the scanning progress with a single line of output. This option is the default when exporting to a file.")
+	flags.BoolVar(&twoFlag, "2", false, "Provide a full-screen ncurses interface while scanning a directory or importing a file. This is the only interface that provides feedback on any non-fatal errors while scanning.")
+	flags.BoolVar(&qFlag, "q", false, "Change the UI update interval while scanning or importing. This can be decreased to once every 2 seconds with -q or --slow-ui-updates. This feature can be used to save bandwidth over remote connections, but has no effect when -0 is used.")
+	flags.BoolVar(&fastFlag, "fast-ui-updates", false, "Change the UI update interval while scanning or importing to 10 times per second. This option has no effect when -0 is used.")
+	flags.BoolVar(&slowFlag, "slow-ui-updates", false, "Change the UI update interval while scanning or importing. This can be decreased to once every 2 seconds with -q or --slow-ui-updates. This feature can be used to save bandwidth over remote connections, but has no effect when -0 is used.")
 
 }
 
