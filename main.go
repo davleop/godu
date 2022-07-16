@@ -119,12 +119,19 @@ var (
 	err          error
 	dir          string
 	//interface options
-	zeroFlag bool
-	oneFlag  bool
-	twoFlag  bool
-	qFlag    bool
-	fastFlag bool
-	slowFlag bool
+	zeroFlag     bool
+	oneFlag      bool
+	twoFlag      bool
+	qFlag        bool
+	fastFlag     bool
+	slowFlag     bool
+	eShellFlag   bool
+	dShellFlag   bool
+	eDeleteFlag  bool
+	dDeleteFlag  bool
+	eRefreshFlag bool
+	dRefreshFlag bool
+	rFlag        bool
 )
 
 func version() {
@@ -153,6 +160,13 @@ func init() {
 	flags.BoolVar(&qFlag, "q", false, "Change the UI update interval while scanning or importing. This can be decreased to once every 2 seconds with -q or --slow-ui-updates. This feature can be used to save bandwidth over remote connections, but has no effect when -0 is used.")
 	flags.BoolVar(&fastFlag, "fast-ui-updates", false, "Change the UI update interval while scanning or importing to 10 times per second. This option has no effect when -0 is used.")
 	flags.BoolVar(&slowFlag, "slow-ui-updates", false, "Change the UI update interval while scanning or importing. This can be decreased to once every 2 seconds with -q or --slow-ui-updates. This feature can be used to save bandwidth over remote connections, but has no effect when -0 is used.")
+	flags.BoolVar(&eShellFlag, "enable-shell", true, "Enable shell spawning from the browser. This feature is enabled by default when scanning a live directory and disabled when importing from file.")
+	flags.BoolVar(&dShellFlag, "disable-shell", false, "Disable shell spawning from the browser. This feature is enabled by default when scanning a live directory and disabled when importing from file.")
+	flags.BoolVar(&eDeleteFlag, "enable-delete", true, "Enable the built-in file deletion feature. This feature is enabled by default when scanning a live directory and disabled when importing from file. Explicitly disabling the deletion feature can work as a safeguard to prevent accidental data loss.")
+	flags.BoolVar(&dDeleteFlag, "disable-delete", false, "Disable the built-in file deletion feature. This feature is enabled by default when scanning a live directory and disabled when importing from file. Explicitly disabling the deletion feature can work as a safeguard to prevent accidental data loss.")
+	flags.BoolVar(&eRefreshFlag, "enable-refresh", true, "Enable directory refreshing from the browser. This feature is enabled by default when scanning a live directory and disabled when importing from file.")
+	flags.BoolVar(&dRefreshFlag, "disable-refresh", false, "Disable directory refreshing from the browser. This feature is enabled by default when scanning a live directory and disabled when importing from file.")
+	flags.BoolVar(&rFlag, "r", false, "Read-only mode. When given once, this is an alias for --disable-delete, when given twice it will also add --disable-shell, thus ensuring that there is no way to modify the file system from within godu.")
 
 }
 
