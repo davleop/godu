@@ -132,6 +132,20 @@ var (
 	eRefreshFlag bool
 	dRefreshFlag bool
 	rFlag        bool
+	siFlag       bool
+	duFlag       bool
+	shFlag       bool
+	sicFlag      bool
+	smtFlag      bool
+	sgFlag       bool
+	spFlag       bool
+	gStyleFlag   string
+	sColumnFlag  string
+	sortFlag     string
+	gdFlag       bool
+	cqFlag       bool
+	cdFlag       bool
+	colorFlag    string
 )
 
 func version() {
@@ -167,6 +181,20 @@ func init() {
 	flags.BoolVar(&eRefreshFlag, "enable-refresh", true, "Enable directory refreshing from the browser. This feature is enabled by default when scanning a live directory and disabled when importing from file.")
 	flags.BoolVar(&dRefreshFlag, "disable-refresh", false, "Disable directory refreshing from the browser. This feature is enabled by default when scanning a live directory and disabled when importing from file.")
 	flags.BoolVar(&rFlag, "r", false, "Read-only mode. When given once, this is an alias for --disable-delete, when given twice it will also add --disable-shell, thus ensuring that there is no way to modify the file system from within godu.")
+	flags.BoolVar(&siFlag, "si", false, "List sizes using base 10 prefixes, that is, powers of 1000 (KB, MB, etc), as defined in the International System of Units (SI), instead of the usual base 2 prefixes, that is, powers of 1024 (KiB, MiB, etc).")
+	flags.BoolVar(&duFlag, "disk-usage", false, "Select whether to display disk usage (default) or apparent sizes. Can also be toggled in the browser with the 'a' key.")
+	flags.BoolVar(&shFlag, "show-hidden", true, "Show (default) or hide 'hidden' and excluded files. Can also be toggled in the browser with the 'e' key.")
+	flags.BoolVar(&sicFlag, "show-itemcount", false, "Show or hide (default) the item counts column. Can also be toggled in the browser with the 'c' key.")
+	flags.BoolVar(&smtFlag, "show-mtime", false, "Show or hide (default) the last modification time column. Can also be toggled in the browser with the 'm' key. This option is ignored when not in extended mode (see -e).")
+	flags.BoolVar(&sgFlag, "show-graph", true, "Show (default) or hide the relative size bar column. Can also be toggled in the browser with the 'g' key.")
+	flags.BoolVar(&spFlag, "show-percent", true, "Show (default) or hide the relative size percent column. Can also be toggled in the browser with the 'g' key.")
+	flags.StringVar(&gStyleFlag, "graph-style", "", "graph-style [OPTION]: Change the way that the relative size bar column is drawn. Recognized values are hash to draw ASCII # characters (default and most portable), half-block to use half-block drawing characters or eighth-block to use eighth-block drawing characters. Eighth-block characters are the most precise but may not render correctly in all terminals.")
+	flags.StringVar(&sColumnFlag, "shared-column", "shared", "shared-column [OPTION]: Set to off to disable the shared size column for directories, shared (default) to display shared directory sizes as a separate column or unique to display unique directory sizes as a separate column. These options can also be cycled through in the browser with the 'u' key.")
+	flags.StringVar(&sortFlag, "sort", "disk-usage", "sort [COLUMN]: Change the default column to sort on. Accepted values are disk-usage (the default), name, apparent-size, itemcount or mtime. The latter only makes sense in extended mode, see -e. The column can be suffixed with -asc or -desc to set the order to ascending or descending, respectively. e.g. --sort=name-desc will sort by name in descending order.")
+	flags.BoolVar(&gdFlag, "group-directories-first", false, "Sort (or not) directories before files.")
+	flags.BoolVar(&cqFlag, "confirm-quit", true, "Require a confirmation before quitting ncdu. Very helpful when you accidentally press 'q' during or after a very long scan.")
+	flags.BoolVar(&cdFlag, "confirm-delete", true, "Require a confirmation before deleting a file or directory. Enabled by default, but can be disabled if you're absolutely sure you won't accidentally press 'd'.")
+	flags.StringVar(&colorFlag, "color", "", "color [SCHEME]: Select a color scheme. The following schemes are recognized: off to disable colors, dark for a color scheme intended for dark backgrounds and dark-bg for a variation of the dark color scheme that also works in terminals with a light background. The default is dark-bg unless the NO_COLOR environment variable is set.")
 
 }
 
